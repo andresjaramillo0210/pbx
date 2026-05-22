@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Bash(npx --yes create-expo-app@latest . --template blank-typescript --no-install)",
+      "Bash(mv .claude ../pbxscape_claude_tmp)",
+      "Bash(mv ../pbxscape_claude_tmp .claude)",
+      "Bash(npm install *)",
+      "Bash(npx expo *)",
+      "Bash(npx tsc *)",
+      "Bash(git check-ignore *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(git add *)"
+    ]
+  }
+}

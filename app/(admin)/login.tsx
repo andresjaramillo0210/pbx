@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View, type TextStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View, type TextStyle } from 'react-native';
 import Button from '../../src/components/Button';
 import ErrorBanner from '../../src/components/ErrorBanner';
 import Input from '../../src/components/Input';
@@ -69,6 +69,16 @@ export default function AdminLogin() {
         <Button onPress={signIn} loading={busy} size="lg" style={styles.submit}>
           Sign in
         </Button>
+        <Pressable
+          onPress={() => router.push('/(admin)/forgot-password')}
+          accessibilityRole="link"
+          style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
+            styles.forgotLink,
+            (hovered || pressed) && styles.forgotLinkActive,
+          ]}
+        >
+          <Text style={styles.forgotLinkText}>Forgot your password?</Text>
+        </Pressable>
       </View>
     </ScreenContainer>
   );
@@ -88,4 +98,18 @@ const styles = StyleSheet.create({
   },
   form: { gap: spacing.md },
   submit: { marginTop: spacing.sm },
+  forgotLink: {
+    alignSelf: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  forgotLinkActive: { opacity: 0.65 },
+  forgotLinkText: {
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    fontWeight: fontWeight.medium as TextStyle['fontWeight'],
+    textDecorationLine: 'underline',
+  },
 });

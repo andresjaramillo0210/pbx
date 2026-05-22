@@ -9,15 +9,26 @@ export default function AdminLayout() {
 
   useEffect(() => {
     let cancelled = false;
+    const isAuthScreen =
+      pathname.endsWith('/login') ||
+      pathname.endsWith('/forgot-password') ||
+      pathname.endsWith('/reset-password');
     (async () => {
       const { data } = await supabase.auth.getSession();
       if (cancelled) return;
-      if (!data.session && !pathname.endsWith('/login')) {
+      if (!data.session && !isAuthScreen) {
         router.replace('/(admin)/login');
       }
     })();
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session && !pathname.endsWith('/login')) {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      // Recovery link clicked: Supabase sets a temporary session and emits
+      // PASSWORD_RECOVERY. Route the user to the reset screen so they can
+      // pick a new password — landing on /tournaments would be confusing.
+      if (event === 'PASSWORD_RECOVERY') {
+        router.replace('/(admin)/reset-password');
+        return;
+      }
+      if (!session && !isAuthScreen) {
         router.replace('/(admin)/login');
       }
     });
@@ -38,6 +49,8 @@ export default function AdminLayout() {
       }}
     >
       <Stack.Screen name="login" options={{ title: 'Admin sign in' }} />
+      <Stack.Screen name="forgot-password" options={{ title: 'Reset password' }} />
+      <Stack.Screen name="reset-password" options={{ title: 'Set new password' }} />
       <Stack.Screen name="tournaments/index" options={{ title: 'Tournaments' }} />
       <Stack.Screen name="tournaments/new" options={{ title: 'New tournament' }} />
       <Stack.Screen name="tournaments/[id]/index" options={{ title: 'Tournament' }} />

@@ -9,7 +9,7 @@
 // auto-routed). The public route `./court-board.tsx` thin-wraps this.
 
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -373,6 +373,9 @@ export default function PublicCourtBoardView() {
     }, [load]),
   );
 
+  const loadRef = useRef(load);
+  loadRef.current = load;
+
   // Live updates: TV-friendly auto-refresh on any match/score/team change.
   useEffect(() => {
     if (!divisionId) return;
@@ -381,28 +384,28 @@ export default function PublicCourtBoardView() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches', filter: `division_id=eq.${divisionId}` },
-        () => { void load(); },
+        () => { void loadRef.current(); },
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'match_games' },
-        () => { void load(); },
+        () => { void loadRef.current(); },
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'teams', filter: `division_id=eq.${divisionId}` },
-        () => { void load(); },
+        () => { void loadRef.current(); },
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'sponsors', filter: `division_id=eq.${divisionId}` },
-        () => { void load(); },
+        () => { void loadRef.current(); },
       )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [divisionId, load]);
+  }, [divisionId]);
 
   if (loading) {
     return (

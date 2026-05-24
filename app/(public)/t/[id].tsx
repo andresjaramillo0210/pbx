@@ -4,7 +4,7 @@
 // Supabase Realtime so the TV refreshes itself when an admin reports a score.
 
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -221,25 +221,38 @@ export default function TournamentView() {
     }, [load]),
   );
 
+  // Stash `load` in a ref so the channel effect only re-runs when `id`
+  // changes — `load` is recreated on every state update and a dependency on
+  // it would tear down + recreate the channel mid-flight, causing supabase-js
+  // to drop the resubscribe silently.
+  const loadRef = useRef(load);
+  loadRef.current = load;
+
   // Realtime: refetch on any score/match/team/division change in this tournament.
   useEffect(() => {
     if (!id) return;
     const channel = supabase
-      .channel(`tournament:${id}:${Date.now()}-${Math.random()}`)
+      .channel(`tournament:${id}:${Date.now()}-${Math.random()}`, {
+        config: { broadcast: { self: false }, presence: { key: '' }, private: false },
+      })
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'divisions', filter: `tournament_id=eq.${id}` },
-        () => { void load(); },
+        () => { void loadRef.current(); },
       )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => { void load(); })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'match_games' }, () => { void load(); })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' }, () => { void load(); })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sponsors' }, () => { void load(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' },
+        () => { void loadRef.current(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'match_games' },
+        () => { void loadRef.current(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teams' },
+        () => { void loadRef.current(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sponsors' },
+        () => { void loadRef.current(); })
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [id, load]);
+  }, [id]);
 
   if (loading) {
     return (

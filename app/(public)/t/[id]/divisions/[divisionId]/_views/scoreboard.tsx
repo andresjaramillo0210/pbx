@@ -11,7 +11,7 @@
 // auto-routed). The public route `./scoreboard.tsx` thin-wraps this.
 
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -359,9 +359,12 @@ export default function PublicScoreboardView() {
     }, [load]),
   );
 
+  // Stash `load` in a ref so the channel effect only depends on divisionId.
+  const loadRef = useRef(load);
+  loadRef.current = load;
+
   // Live updates: refetch whenever the admin reports a score, withdraws a
-  // team, reassigns a court, etc. The TV-style scoreboard needs to update
-  // hands-off so spectators see the new state without anyone touching it.
+  // team, reassigns a court, etc.
   useEffect(() => {
     if (!divisionId) return;
     const channel = supabase
@@ -369,23 +372,23 @@ export default function PublicScoreboardView() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches', filter: `division_id=eq.${divisionId}` },
-        () => { void load(); },
+        () => { void loadRef.current(); },
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'match_games' },
-        () => { void load(); },
+        () => { void loadRef.current(); },
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'teams', filter: `division_id=eq.${divisionId}` },
-        () => { void load(); },
+        () => { void loadRef.current(); },
       )
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [divisionId, load]);
+  }, [divisionId]);
 
   if (loading) {
     return (

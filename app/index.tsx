@@ -34,7 +34,7 @@ export default function Home() {
         <Button
           variant="primary"
           size="lg"
-          onPress={() => router.push('/(public)/tournaments' as never)}
+          onPress={() => router.push('/browse')}
           style={[styles.actionButton, styles.brandButton]}
           textStyle={styles.brandButtonText}
         >

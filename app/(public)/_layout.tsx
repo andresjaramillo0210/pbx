@@ -12,7 +12,7 @@ export default function PublicLayout() {
         contentStyle: { backgroundColor: colors.bg },
       }}
     >
-      <Stack.Screen name="tournaments" options={{ title: 'Tournaments' }} />
+      <Stack.Screen name="browse" options={{ title: 'Tournaments' }} />
       <Stack.Screen name="t/[id]" options={{ title: 'Tournament' }} />
       <Stack.Screen
         name="t/[id]/divisions/[divisionId]/index"

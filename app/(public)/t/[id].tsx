@@ -385,6 +385,9 @@ export default function TournamentView() {
             ))}
           </View>
 
+          {/* Sponsor band — between courts and standings. */}
+          <SponsorBand sponsors={sponsors} />
+
           {/* Per-division standings — split by pool when format is pool-to-bracket. */}
           <View style={styles.standingsStack}>
             {runningDivisions.map((d) => {
@@ -917,57 +920,27 @@ const styles = StyleSheet.create({
   rowScore: { color: colors.text, fontSize: fontSize.sm, fontWeight: fontWeight.bold as TextStyle['fontWeight'], fontVariant: ['tabular-nums'] },
 
   // Sponsor band
-  sponsorBand: { gap: spacing.md, marginTop: spacing.lg },
-  sponsorLargeRow: {
-    width: '100%',
-    minHeight: 96,
-    backgroundColor: colors.bgElevated,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sponsorLargeImg: { width: '100%', height: 80 },
+  sponsorBand: { gap: spacing.lg, marginTop: spacing.lg, alignItems: 'center' },
+  sponsorLargeRow: { width: '100%', alignItems: 'center', justifyContent: 'center' },
+  sponsorLargeImg: { width: '100%', maxWidth: 720, height: 96 },
   sponsorMediumRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -(spacing.sm),
-  },
-  sponsorMediumCell: {
-    width: '50%',
-    paddingHorizontal: spacing.sm,
-    marginBottom: spacing.md,
-  },
-  sponsorMediumImg: {
+    justifyContent: 'center',
+    gap: spacing.xl,
     width: '100%',
-    height: 64,
-    backgroundColor: colors.bgElevated,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.sm,
   },
+  sponsorMediumCell: { flexShrink: 0 },
+  sponsorMediumImg: { width: 200, height: 64 },
   sponsorSmallRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -(spacing.xs),
-    gap: spacing.sm,
-    padding: spacing.sm,
-    backgroundColor: colors.bgMuted,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  sponsorSmallCell: {
-    flexGrow: 1,
-    flexBasis: 120,
-    height: 40,
-    alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.lg,
+    width: '100%',
   },
-  sponsorSmallImg: { width: '100%', height: '100%' },
+  sponsorSmallCell: { flexShrink: 0 },
+  sponsorSmallImg: { width: 120, height: 40 },
 
   // Standings
   standingsStack: { gap: spacing.lg, marginTop: spacing.lg },

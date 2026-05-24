@@ -487,9 +487,9 @@ export default function GenerateMatches() {
 }
 
 function StatChip({ label, value, tone }: { label: string; value: string; tone?: 'primary' | 'warning' }) {
-  const bg = tone === 'primary' ? colors.primarySoft : tone === 'warning' ? '#fef3c7' : colors.bgMuted;
-  const fg = tone === 'primary' ? colors.primarySoftText : tone === 'warning' ? '#92400e' : colors.text;
-  const labelColor = tone === 'primary' ? colors.primarySoftText : tone === 'warning' ? '#92400e' : colors.textMuted;
+  const bg = tone === 'primary' ? colors.primarySoft : tone === 'warning' ? colors.warningSoft : colors.bgMuted;
+  const fg = tone === 'primary' ? colors.primarySoftText : tone === 'warning' ? colors.warningSoftText : colors.text;
+  const labelColor = tone === 'primary' ? colors.primarySoftText : tone === 'warning' ? colors.warningSoftText : colors.textMuted;
   return (
     <View style={[styles.statChip, { backgroundColor: bg }]}>
       <Text style={[styles.statValue, { color: fg }]}>{value}</Text>
@@ -535,7 +535,7 @@ function toInsertRow(
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   error: { color: colors.destructive },
-  warning: { color: '#92400e', fontSize: fontSize.sm, marginTop: spacing.sm },
+  warning: { color: colors.warningSoftText, fontSize: fontSize.sm, marginTop: spacing.sm },
   heading: { gap: spacing.xs, paddingTop: spacing.sm },
   eyebrow: {
     fontSize: fontSize.xs,
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
   },
   formatWarning: {
     fontSize: fontSize.sm,
-    color: '#92400e',
+    color: colors.warningSoftText,
     marginTop: spacing.md,
   },
   cardList: { gap: spacing.lg, marginTop: spacing.md },

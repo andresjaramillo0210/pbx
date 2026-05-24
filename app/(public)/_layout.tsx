@@ -9,14 +9,22 @@ export default function PublicLayout() {
         headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: fontWeight.semibold as '600' },
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.bgMuted },
+        contentStyle: { backgroundColor: colors.bg },
       }}
     >
       <Stack.Screen name="tournaments" options={{ title: 'Tournaments' }} />
       <Stack.Screen name="t/[id]" options={{ title: 'Tournament' }} />
       <Stack.Screen
-        name="t/[id]/divisions/[divisionId]"
+        name="t/[id]/divisions/[divisionId]/index"
         options={{ title: 'Division' }}
+      />
+      <Stack.Screen
+        name="t/[id]/divisions/[divisionId]/court-board"
+        options={{ title: 'Court board' }}
+      />
+      <Stack.Screen
+        name="t/[id]/divisions/[divisionId]/scoreboard"
+        options={{ title: 'Scoreboard' }}
       />
     </Stack>
   );

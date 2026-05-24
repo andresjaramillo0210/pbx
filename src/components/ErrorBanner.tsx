@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type TextStyle } from 'react-native';
+import { colors, fontSize, fontWeight, radii, spacing } from '../theme';
 
 type Props = {
   error: string | null;
@@ -26,18 +27,18 @@ const styles = StyleSheet.create({
     width: '100%',
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#fef2f2',
+    backgroundColor: colors.destructiveSoft,
     borderWidth: 1,
-    borderColor: '#fca5a5',
-    borderRadius: 6,
+    borderColor: colors.destructive,
+    borderRadius: radii.md,
     paddingVertical: 10,
-    paddingHorizontal: 12,
-    gap: 8,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
   message: {
     flex: 1,
-    color: '#991b1b',
-    fontSize: 14,
+    color: colors.destructiveSoftText,
+    fontSize: fontSize.base,
   },
   dismiss: {
     minHeight: 44,
@@ -48,8 +49,8 @@ const styles = StyleSheet.create({
     marginRight: -8,
   },
   dismissText: {
-    color: '#991b1b',
-    fontSize: 16,
-    fontWeight: '700',
+    color: colors.destructiveSoftText,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.bold as TextStyle['fontWeight'],
   },
 });

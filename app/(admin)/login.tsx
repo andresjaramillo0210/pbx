@@ -7,7 +7,7 @@ import Input from '../../src/components/Input';
 import ScreenContainer from '../../src/components/ScreenContainer';
 import { notifyAlert } from '../../src/lib/notify';
 import { supabase } from '../../src/lib/supabase';
-import { colors, fontSize, fontWeight, spacing } from '../../src/theme';
+import { colors, fontSize, fontWeight, radii, shadows, spacing, tracking } from '../../src/theme';
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -37,11 +37,12 @@ export default function AdminLogin() {
   return (
     <ScreenContainer maxWidth={440} contentContainerStyle={styles.content}>
       <View style={styles.heading}>
+        <Text style={styles.eyebrow}>pbxscape admin</Text>
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>Sign in to manage tournaments and courts.</Text>
       </View>
       <ErrorBanner error={errorMsg} onDismiss={() => setErrorMsg(null)} />
-      <View style={styles.form}>
+      <View style={styles.card}>
         <Input
           label="Email"
           autoCapitalize="none"
@@ -85,18 +86,36 @@ export default function AdminLogin() {
 }
 
 const styles = StyleSheet.create({
-  content: { gap: spacing.lg, paddingTop: spacing.xl },
+  content: { gap: spacing.lg, paddingTop: spacing.xxl },
   heading: { gap: spacing.xs, marginBottom: spacing.sm },
+  eyebrow: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold as TextStyle['fontWeight'],
+    color: colors.primarySoftText,
+    textTransform: 'uppercase',
+    letterSpacing: tracking.capsLoose,
+    marginBottom: spacing.xs,
+  },
   title: {
     fontSize: fontSize.xxl,
     fontWeight: fontWeight.bold as TextStyle['fontWeight'],
     color: colors.text,
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: fontSize.base,
     color: colors.textMuted,
   },
-  form: { gap: spacing.md },
+  // The form lives in a raised dark card so it pops off the page bg.
+  card: {
+    gap: spacing.md,
+    backgroundColor: colors.bgElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.xl,
+    padding: spacing.xl,
+    ...shadows.card,
+  },
   submit: { marginTop: spacing.sm },
   forgotLink: {
     alignSelf: 'center',

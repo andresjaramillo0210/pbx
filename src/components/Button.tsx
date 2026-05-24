@@ -62,7 +62,13 @@ export default function Button({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'primary' || variant === 'destructive' ? colors.primaryText : colors.primary}
+          color={
+            variant === 'primary'
+              ? colors.primaryText
+              : variant === 'destructive'
+                ? '#ffffff'
+                : colors.primary
+          }
         />
       ) : (
         <Text style={[styles.text, variantText, sizeText, textStyle]} numberOfLines={1}>
@@ -101,22 +107,24 @@ const containerByVariant: Record<ButtonVariant, ViewStyle> = {
 
 const hoverByVariant: Record<ButtonVariant, ViewStyle> = {
   primary: { backgroundColor: colors.primaryHover },
-  secondary: { backgroundColor: colors.border },
-  destructive: { backgroundColor: '#b91c1c' },
+  secondary: { backgroundColor: colors.secondaryHover },
+  destructive: { backgroundColor: colors.destructiveHover },
   ghost: { backgroundColor: colors.secondary },
 };
 
 const pressedByVariant: Record<ButtonVariant, ViewStyle> = {
-  primary: { backgroundColor: colors.primaryHover, opacity: 0.92 },
-  secondary: { backgroundColor: colors.border, opacity: 0.92 },
-  destructive: { backgroundColor: '#b91c1c', opacity: 0.92 },
+  primary: { backgroundColor: colors.primaryPressed, opacity: 0.92 },
+  secondary: { backgroundColor: colors.borderStrong, opacity: 0.92 },
+  destructive: { backgroundColor: colors.destructiveHover, opacity: 0.92 },
   ghost: { backgroundColor: colors.border, opacity: 0.92 },
 };
 
 const textByVariant: Record<ButtonVariant, TextStyle> = {
   primary: { color: colors.primaryText },
   secondary: { color: colors.secondaryText },
-  destructive: { color: colors.primaryText },
+  // Destructive uses pure white on red for max contrast; the near-black
+  // primaryText would muddy the red bg.
+  destructive: { color: '#ffffff' },
   ghost: { color: colors.primary },
 };
 

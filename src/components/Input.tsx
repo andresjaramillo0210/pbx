@@ -33,7 +33,7 @@ const Input = forwardRef<TextInput, Props>(function Input(
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <TextInput
         ref={ref}
-        placeholderTextColor="#94a3b8"
+        placeholderTextColor={colors.textSubtle}
         {...rest}
         onFocus={(e) => {
           setFocused(true);
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: fontSize.md,
     minHeight: 44,
-    backgroundColor: colors.bg,
+    backgroundColor: colors.bgElevated,
     color: colors.text,
   },
   helper: {

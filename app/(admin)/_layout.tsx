@@ -45,7 +45,7 @@ export default function AdminLayout() {
         headerTintColor: colors.text,
         headerTitleStyle: { fontWeight: fontWeight.semibold as '600' },
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.bgMuted },
+        contentStyle: { backgroundColor: colors.bg },
       }}
     >
       <Stack.Screen name="login" options={{ title: 'Admin sign in' }} />

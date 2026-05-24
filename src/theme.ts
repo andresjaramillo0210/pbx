@@ -1,39 +1,62 @@
 // Design tokens for pbxscape. Every screen and component should pull colors,
 // spacing, type sizes, etc. from here so we keep visual consistency and can
 // retheme the whole app from one file.
+//
+// Dark mode palette — clean Discord/Linear-style dark, pickleball green
+// accent. Tuned for high contrast: primary text on bg sits well above the
+// WCAG AAA threshold (>=7:1).
 
 export const colors = {
-  // Backgrounds
-  bg: '#ffffff',
-  bgMuted: '#f8fafc',     // page bg / subtle sections
-  bgElevated: '#ffffff',  // cards on muted bg
-  // Text
-  text: '#0f172a',
-  textMuted: '#475569',
-  textSubtle: '#64748b',
-  // Borders
-  border: '#e2e8f0',
-  borderStrong: '#cbd5e1',
-  borderFocus: '#16a34a',  // pickleball green
-  // Primary (action) - pickleball green for the sport theme
-  primary: '#16a34a',
-  primaryHover: '#15803d',
-  primaryText: '#ffffff',
-  primarySoft: '#dcfce7',
-  primarySoftText: '#166534',
-  // Secondary / neutral action
-  secondary: '#f1f5f9',
-  secondaryText: '#0f172a',
-  // Destructive
-  destructive: '#dc2626',
-  destructiveSoft: '#fef2f2',
-  destructiveSoftText: '#991b1b',
-  // Status colors (for pills / badges) - solid color, used at 15% for bg
-  statusDraft: '#94a3b8',
-  statusOpen: '#3b82f6',
-  statusLocked: '#f59e0b',
-  statusRunning: '#16a34a',
-  statusComplete: '#64748b',
+  // Backgrounds — deepest at the bottom of the stack, lifting to elevated
+  // surfaces as you nest. bg is page-level; bgMuted reads as a subtle wash
+  // for sections; bgElevated is the raised card surface that "pops" forward.
+  bg: '#0b1220',           // deepest background (page)
+  bgMuted: '#111a2e',      // section bg / subtle wash
+  bgElevated: '#1a2540',   // raised card surface
+  // Text — soft near-white avoids the harsh #fff glow on dark surfaces.
+  text: '#e6edf7',         // primary
+  textMuted: '#9aa6b8',    // secondary
+  textSubtle: '#6b7686',   // tertiary / caption
+  // Borders — hairline by default, stronger when you need emphasis.
+  border: '#1f2a44',
+  borderStrong: '#2a3754',
+  borderFocus: '#f97316',  // Westminster brand orange focus ring
+  // Primary (action) — Westminster brand orange. Used for CTAs, focus, chips.
+  primary: '#f97316',
+  primaryHover: '#ea580c',
+  primaryText: '#1a0e02',  // near-black so the bright orange CTA reads as a button, not a glow
+  primaryPressed: '#c2410c',
+  // Soft variants — dark-tinted orange wash for chips, selected states, etc.
+  primarySoft: '#2e1707',
+  primarySoftText: '#fdba74',
+  // Live (in-progress) — green is reserved for "match is being played right
+  // now". Distinct from `primary` so the brand color doesn't get confused with
+  // a state indicator. Used by LIVE pills, live court accents, broadcast cards.
+  live: '#22c55e',
+  liveSoft: '#0f2a1a',
+  liveSoftText: '#86efac',
+  // Secondary / neutral action.
+  secondary: '#1f2a44',
+  secondaryText: '#e6edf7',
+  secondaryHover: '#2a3754',
+  // Destructive.
+  destructive: '#ef4444',
+  destructiveHover: '#dc2626',
+  destructiveSoft: '#2a1414',
+  destructiveSoftText: '#fca5a5',
+  // Status hues (used by StatusPill as solid color references). Tuned to be
+  // visible on dark — bright enough to read, not so saturated they vibrate.
+  statusDraft: '#475569',
+  statusOpen: '#60a5fa',
+  statusLocked: '#fbbf24',
+  statusRunning: '#22c55e',
+  statusComplete: '#94a3b8',
+  // Soft amber wash for inline warnings / "needs attention" cards. Matches
+  // the StatusPill amber tint so the language is consistent.
+  warningSoft: '#2e1f0a',
+  warningSoftText: '#fbbf24',
+  // Overlay scrim (modals).
+  scrim: 'rgba(2, 6, 16, 0.65)',
 } as const;
 
 export const spacing = {
@@ -63,6 +86,7 @@ export const fontSize = {
   xl: 22,
   xxl: 28,
   display: 36,
+  hero: 56,
 } as const;
 
 // Note: cast to TextStyle['fontWeight'] at use site, or import as-is - the
@@ -72,22 +96,25 @@ export const fontWeight = {
   medium: '500',
   semibold: '600',
   bold: '700',
+  black: '800',
 } as const;
 
+// Card shadows on dark surfaces. We use a deeper black with higher opacity so
+// elevation reads against the dark backdrop (light shadows disappear).
 export const shadows = {
   card: {
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 3,
   },
   cardHover: {
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    elevation: 6,
   },
 } as const;
 

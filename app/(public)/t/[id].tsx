@@ -93,7 +93,7 @@ export default function TournamentView() {
                 key={d.id}
                 onPress={() =>
                   router.push({
-                    pathname: '/(public)/t/[id]/divisions/[divisionId]',
+                    pathname: '/(public)/t/[id]/divisions/[divisionId]/index' as never,
                     params: { id, divisionId: d.id },
                   })
                 }

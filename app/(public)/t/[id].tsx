@@ -225,7 +225,7 @@ export default function TournamentView() {
   useEffect(() => {
     if (!id) return;
     const channel = supabase
-      .channel(`tournament:${id}`)
+      .channel(`tournament:${id}:${Date.now()}-${Math.random()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'divisions', filter: `tournament_id=eq.${id}` },

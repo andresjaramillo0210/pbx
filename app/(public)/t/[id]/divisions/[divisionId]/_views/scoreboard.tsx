@@ -365,7 +365,7 @@ export default function PublicScoreboardView() {
   useEffect(() => {
     if (!divisionId) return;
     const channel = supabase
-      .channel(`scoreboard:${divisionId}`)
+      .channel(`scoreboard:${divisionId}:${Date.now()}-${Math.random()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches', filter: `division_id=eq.${divisionId}` },

@@ -377,7 +377,7 @@ export default function PublicCourtBoardView() {
   useEffect(() => {
     if (!divisionId) return;
     const channel = supabase
-      .channel(`court-board:${divisionId}`)
+      .channel(`court-board:${divisionId}:${Date.now()}-${Math.random()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches', filter: `division_id=eq.${divisionId}` },

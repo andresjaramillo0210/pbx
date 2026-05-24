@@ -358,11 +358,13 @@ export default function AdminCourtBoardView() {
   );
 
   // Live updates: keep the tablet view in sync if multiple admins are
-  // touching the division at once.
+  // touching the division at once. The channel name includes a per-mount
+  // suffix so we don't collide with a cached channel from a prior mount
+  // (Supabase caches by name; .on() after .subscribe() throws).
   useEffect(() => {
     if (!divisionId) return;
     const channel = supabase
-      .channel(`admin-court-board:${divisionId}`)
+      .channel(`admin-court-board:${divisionId}:${Date.now()}-${Math.random()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matches', filter: `division_id=eq.${divisionId}` },

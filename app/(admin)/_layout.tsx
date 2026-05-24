@@ -65,6 +65,10 @@ export default function AdminLayout() {
         options={{ title: 'Edit division' }}
       />
       <Stack.Screen
+        name="tournaments/[id]/divisions/[divisionId]/manage"
+        options={{ title: 'Manage division' }}
+      />
+      <Stack.Screen
         name="tournaments/[id]/divisions/[divisionId]/teams/new"
         options={{ title: 'New team' }}
       />

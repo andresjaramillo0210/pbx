@@ -399,7 +399,7 @@ export default function TournamentDetail() {
                     disabled={isBusy}
                     onPress={() =>
                       router.push({
-                        pathname: '/(admin)/tournaments/[id]/divisions/[divisionId]',
+                        pathname: '/(admin)/tournaments/[id]/divisions/[divisionId]/manage',
                         params: { id: tournament.id, divisionId: d.id, focus: 'teams' },
                       })
                     }
@@ -412,7 +412,7 @@ export default function TournamentDetail() {
                     disabled={isBusy}
                     onPress={() =>
                       router.push({
-                        pathname: '/(admin)/tournaments/[id]/divisions/[divisionId]',
+                        pathname: '/(admin)/tournaments/[id]/divisions/[divisionId]/manage',
                         params: { id: tournament.id, divisionId: d.id, focus: 'courts' },
                       })
                     }

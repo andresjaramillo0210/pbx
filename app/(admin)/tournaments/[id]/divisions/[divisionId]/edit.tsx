@@ -7,6 +7,7 @@ import Card from '../../../../../../src/components/Card';
 import ErrorBanner from '../../../../../../src/components/ErrorBanner';
 import Input from '../../../../../../src/components/Input';
 import ScreenContainer from '../../../../../../src/components/ScreenContainer';
+import SponsorManager from '../../../../../../src/components/SponsorManager';
 import { notifyAlert } from '../../../../../../src/lib/notify';
 import { supabase } from '../../../../../../src/lib/supabase';
 import { colors, fontSize, fontWeight, radii, spacing, tracking } from '../../../../../../src/theme';
@@ -183,7 +184,14 @@ export default function EditDivision() {
       notifyAlert('Could not save', error.message);
       return;
     }
-    router.back();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace({
+        pathname: '/(admin)/tournaments/[id]/divisions/[divisionId]',
+        params: { id: id as string, divisionId: divisionId as string },
+      });
+    }
   }
 
   if (loading) {
@@ -321,8 +329,30 @@ export default function EditDivision() {
         </View>
       </Card>
 
+      <Card>
+        <Text style={styles.sectionLabel}>Sponsors</Text>
+        <Text style={styles.subtitle}>
+          Logos appear under the courts on the public TV view.
+        </Text>
+        <View style={{ marginTop: spacing.md }}>
+          <SponsorManager divisionId={divisionId as string} />
+        </View>
+      </Card>
+
       <View style={styles.actions}>
-        <Button variant="ghost" onPress={() => router.back()}>
+        <Button
+          variant="ghost"
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace({
+                pathname: '/(admin)/tournaments/[id]/divisions/[divisionId]',
+                params: { id: id as string, divisionId: divisionId as string },
+              });
+            }
+          }}
+        >
           Cancel
         </Button>
         <Button onPress={submit} loading={busy} size="lg" style={styles.save}>

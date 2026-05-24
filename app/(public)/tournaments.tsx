@@ -48,7 +48,7 @@ export default function PublicTournaments() {
           {rows.map((item) => (
             <Card
               key={item.id}
-              onPress={() => router.push({ pathname: '/(public)/t/[id]', params: { id: item.id } })}
+              onPress={() => router.push({ pathname: '/t/[id]', params: { id: item.id } })}
               accessibilityLabel={`Open tournament ${item.name}`}
             >
               <Text style={styles.rowTitle} numberOfLines={1}>{item.name}</Text>

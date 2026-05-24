@@ -11,7 +11,7 @@
 // auto-routed). The public route `./scoreboard.tsx` thin-wraps this.
 
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -359,6 +359,34 @@ export default function PublicScoreboardView() {
     }, [load]),
   );
 
+  // Live updates: refetch whenever the admin reports a score, withdraws a
+  // team, reassigns a court, etc. The TV-style scoreboard needs to update
+  // hands-off so spectators see the new state without anyone touching it.
+  useEffect(() => {
+    if (!divisionId) return;
+    const channel = supabase
+      .channel(`scoreboard:${divisionId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'matches', filter: `division_id=eq.${divisionId}` },
+        () => { void load(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'match_games' },
+        () => { void load(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'teams', filter: `division_id=eq.${divisionId}` },
+        () => { void load(); },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [divisionId, load]);
+
   if (loading) {
     return (
       <ScreenContainer scroll={false}>
@@ -465,7 +493,7 @@ export default function PublicScoreboardView() {
       router.back();
     } else {
       router.push({
-        pathname: '/(public)/t/[id]',
+        pathname: '/t/[id]',
         params: { id: division.tournament_id },
       });
     }
@@ -493,7 +521,7 @@ export default function PublicScoreboardView() {
         <Pressable
           onPress={() =>
             router.push({
-              pathname: '/(public)/t/[id]/divisions/[divisionId]/court-board',
+              pathname: '/t/[id]/divisions/[divisionId]/court-board',
               params: { id: division.tournament_id, divisionId: division.id },
             })
           }
@@ -519,9 +547,6 @@ export default function PublicScoreboardView() {
           </Text>
           <View style={styles.topBarMetaRow}>
             <StatusPill status={division.status} />
-            <Text style={styles.topBarMeta}>
-              {live.length} live · {nextUp.length} up next
-            </Text>
           </View>
         </View>
         <View style={styles.logoWrap}>

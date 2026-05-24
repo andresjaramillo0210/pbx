@@ -9,7 +9,7 @@
 // auto-routed). The public route `./court-board.tsx` thin-wraps this.
 
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -357,6 +357,33 @@ export default function AdminCourtBoardView() {
     }, [load]),
   );
 
+  // Live updates: keep the tablet view in sync if multiple admins are
+  // touching the division at once.
+  useEffect(() => {
+    if (!divisionId) return;
+    const channel = supabase
+      .channel(`admin-court-board:${divisionId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'matches', filter: `division_id=eq.${divisionId}` },
+        () => { void load(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'match_games' },
+        () => { void load(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'teams', filter: `division_id=eq.${divisionId}` },
+        () => { void load(); },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [divisionId, load]);
+
   if (loading) {
     return (
       <ScreenContainer scroll={false}>
@@ -457,6 +484,22 @@ export default function AdminCourtBoardView() {
     });
   };
 
+  // Set the division's status. The tournament-level court board only shows
+  // divisions where status === 'running', so flipping this toggle is how the
+  // admin pulls a division onto the TV.
+  const setStatus = async (next: 'open' | 'running' | 'complete') => {
+    if (division.status === next) return;
+    setDivision({ ...division, status: next });
+    const { error: updateError } = await supabase
+      .from('divisions')
+      .update({ status: next })
+      .eq('id', division.id);
+    if (updateError) {
+      setError(`Failed to update status: ${updateError.message}`);
+      void load();
+    }
+  };
+
   return (
     <ScreenContainer maxWidth={1400}>
       <ErrorBanner error={error} onDismiss={() => setError(null)} />
@@ -474,19 +517,16 @@ export default function AdminCourtBoardView() {
         <Text style={styles.backLinkText}>← Tournament</Text>
       </Pressable>
 
-      {/* Top bar: title left, brand logo right with brand-orange glow. */}
+      {/* Top bar: title left, brand logo right. */}
       <View style={styles.topBar}>
         <View style={styles.topBarTextCol}>
           <Text style={styles.topBarTitle} numberOfLines={2}>
             {labelDivision(division.type, division.level, division.gender)}
           </Text>
-          <View style={styles.topBarMetaRow}>
-            <StatusPill status={division.status} />
-            <Text style={styles.topBarMeta}>
-              {teams.length} {teams.length === 1 ? 'team' : 'teams'} · {divisionCourts.length}{' '}
-              {divisionCourts.length === 1 ? 'court' : 'courts'}
-            </Text>
-          </View>
+          <Text style={styles.topBarMeta}>
+            {teams.length} {teams.length === 1 ? 'team' : 'teams'} · {divisionCourts.length}{' '}
+            {divisionCourts.length === 1 ? 'court' : 'courts'}
+          </Text>
         </View>
         <View style={styles.logoWrap}>
           <Image
@@ -495,6 +535,33 @@ export default function AdminCourtBoardView() {
             resizeMode="contain"
             accessibilityLabel="Westminster Pickleball Xscape logo"
           />
+        </View>
+      </View>
+
+      {/* Division status — tap a button to set the state. */}
+      <View style={styles.statusBar}>
+        <Text style={styles.statusBarLabel}>Status</Text>
+        <View style={styles.statusSegmented}>
+          {(['open', 'running', 'complete'] as const).map((s) => {
+            const active = division.status === s;
+            return (
+              <Pressable
+                key={s}
+                onPress={() => { void setStatus(s); }}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
+                  styles.statusSegment,
+                  active && styles.statusSegmentActive,
+                  !active && (hovered || pressed) && styles.statusSegmentHover,
+                ]}
+              >
+                <Text style={[styles.statusSegmentText, active && styles.statusSegmentTextActive]}>
+                  {s === 'open' ? 'Not started' : s === 'running' ? 'In progress' : 'Completed'}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
 
@@ -913,6 +980,46 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   topBarMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, flexWrap: 'wrap' },
+
+  // Division status segmented control
+  statusBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginVertical: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  statusBarLabel: {
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.bold as TextStyle['fontWeight'],
+    textTransform: 'uppercase',
+    letterSpacing: tracking.capsLoose,
+  },
+  statusSegmented: {
+    flexDirection: 'row',
+    gap: 2,
+    padding: 2,
+    borderRadius: radii.lg,
+    backgroundColor: colors.bgMuted,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  statusSegment: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  statusSegmentActive: { backgroundColor: colors.primary },
+  statusSegmentHover: { backgroundColor: colors.bgElevated },
+  statusSegmentText: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold as TextStyle['fontWeight'],
+  },
+  statusSegmentTextActive: { color: colors.primaryText },
   topBarMeta: { color: colors.textMuted, fontSize: fontSize.sm },
   logoWrap: {},
   logo: { width: 80, height: 40 },

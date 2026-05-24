@@ -7,6 +7,7 @@ import Card from '../../../../../src/components/Card';
 import ErrorBanner from '../../../../../src/components/ErrorBanner';
 import Input from '../../../../../src/components/Input';
 import ScreenContainer from '../../../../../src/components/ScreenContainer';
+import SponsorManager from '../../../../../src/components/SponsorManager';
 import { notifyAlert, notifyConfirm } from '../../../../../src/lib/notify';
 import { supabase } from '../../../../../src/lib/supabase';
 import { colors, fontSize, fontWeight, radii, spacing, tracking } from '../../../../../src/theme';
@@ -30,7 +31,7 @@ type Court = { id: string; name: string };
 
 type AddedTeam = { id: string; name: string; playerIds: string[] };
 
-type WizardStep = 1 | 2 | 3;
+type WizardStep = 1 | 2 | 3 | 4;
 
 const TYPE_OPTIONS: { value: DivisionType; label: string }[] = [
   { value: 'singles', label: 'Singles' },
@@ -55,6 +56,7 @@ const STEP_TITLES: Record<WizardStep, string> = {
   1: 'Settings',
   2: 'Courts',
   3: 'Teams',
+  4: 'Sponsors',
 };
 
 // How many players a team needs for a given division type.
@@ -500,11 +502,15 @@ export default function NewDivisionWizard() {
     }
     busyRef.current = false;
     setBusy(false);
-    if (ok) exitWizard();
+    if (ok) {
+      setMaxReached(4);
+      setStep(4);
+    }
   }
 
   function skipTeams() {
-    exitWizard();
+    setMaxReached((m) => (m < 4 ? 4 : m));
+    setStep(4);
   }
 
   // Remove a team that was added this session (admin mistyped). Also cleans
@@ -535,7 +541,7 @@ export default function NewDivisionWizard() {
     <ScreenContainer maxWidth={520} contentContainerStyle={styles.content}>
       <View style={styles.heading}>
         <Text style={styles.title}>New division</Text>
-        <Text style={styles.subtitle}>Step {step} of 3 — {STEP_TITLES[step]}</Text>
+        <Text style={styles.subtitle}>Step {step} of 4 — {STEP_TITLES[step]}</Text>
       </View>
 
       <StepIndicator step={step} maxReached={maxReached} onSelect={goToStep} />
@@ -585,6 +591,14 @@ export default function NewDivisionWizard() {
           busy={busy}
         />
       )}
+
+      {step === 4 && divisionId && (
+        <Step4Sponsors
+          divisionId={divisionId}
+          onBack={() => goToStep(3)}
+          onDone={exitWizard}
+        />
+      )}
     </ScreenContainer>
   );
 }
@@ -602,6 +616,7 @@ function StepIndicator({ step, maxReached, onSelect }: StepIndicatorProps) {
     { value: 1, label: 'Settings' },
     { value: 2, label: 'Courts' },
     { value: 3, label: 'Teams' },
+    { value: 4, label: 'Sponsors' },
   ];
   return (
     <View style={styles.stepRow}>
@@ -972,6 +987,41 @@ function Step3Teams({
         )}
         <View style={styles.backRow}>
           <Button variant="ghost" onPress={onBack} disabled={busy}>Back</Button>
+        </View>
+      </View>
+    </>
+  );
+}
+
+// ---------------- Step 4 ----------------
+
+function Step4Sponsors({
+  divisionId,
+  onBack,
+  onDone,
+}: {
+  divisionId: string;
+  onBack: () => void;
+  onDone: () => void;
+}) {
+  return (
+    <>
+      <Card>
+        <View style={{ gap: spacing.sm, marginBottom: spacing.md }}>
+          <Text style={styles.sectionLabel}>Sponsors (optional)</Text>
+          <Text style={styles.helper}>
+            Logos uploaded here appear under the courts on the public TV view. You can add
+            more or change sizes later from the division edit page.
+          </Text>
+        </View>
+        <SponsorManager divisionId={divisionId} />
+      </Card>
+      <View style={styles.step3Actions}>
+        <Button onPress={onDone} size="lg">
+          Done
+        </Button>
+        <View style={styles.backRow}>
+          <Button variant="ghost" onPress={onBack}>Back</Button>
         </View>
       </View>
     </>

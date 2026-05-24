@@ -9,7 +9,7 @@
 // auto-routed). The public route `./court-board.tsx` thin-wraps this.
 
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -80,6 +80,14 @@ type MatchGame = {
 type Pool = { id: string; name: string };
 type PoolTeam = { pool_id: string; team_id: string };
 type Court = { id: string; name: string };
+
+type SponsorSize = 'large' | 'medium' | 'small';
+type Sponsor = {
+  id: string;
+  image_url: string;
+  size: SponsorSize;
+  display_order: number;
+};
 type DivisionCourtRow = {
   court_id: string;
   display_order: number;
@@ -231,6 +239,7 @@ export default function PublicCourtBoardView() {
   const [pools, setPools] = useState<Pool[]>([]);
   const [poolTeams, setPoolTeams] = useState<PoolTeam[]>([]);
   const [divisionCourts, setDivisionCourts] = useState<Court[]>([]);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -266,7 +275,7 @@ export default function PublicCourtBoardView() {
     }
     setDivision(div);
 
-    const [teamsRes, matchesRes, poolsRes, dcRes] = await Promise.all([
+    const [teamsRes, matchesRes, poolsRes, dcRes, spRes] = await Promise.all([
       supabase.from('teams').select('id, name, withdrawn_at').eq('division_id', divisionId),
       supabase
         .from('matches')
@@ -285,10 +294,17 @@ export default function PublicCourtBoardView() {
         .select('court_id, display_order, courts:court_id (id, name)')
         .eq('division_id', divisionId)
         .order('display_order', { ascending: true }),
+      supabase
+        .from('sponsors')
+        .select('id, image_url, size, display_order')
+        .eq('division_id', divisionId)
+        .order('display_order', { ascending: true }),
     ]);
 
     if (teamsRes.error) setError(teamsRes.error.message);
     setTeams((teamsRes.data as Team[]) ?? []);
+
+    setSponsors((spRes.data as Sponsor[]) ?? []);
 
     if (matchesRes.error) setError(matchesRes.error.message);
     const mList = (matchesRes.data as Match[]) ?? [];
@@ -357,6 +373,37 @@ export default function PublicCourtBoardView() {
     }, [load]),
   );
 
+  // Live updates: TV-friendly auto-refresh on any match/score/team change.
+  useEffect(() => {
+    if (!divisionId) return;
+    const channel = supabase
+      .channel(`court-board:${divisionId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'matches', filter: `division_id=eq.${divisionId}` },
+        () => { void load(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'match_games' },
+        () => { void load(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'teams', filter: `division_id=eq.${divisionId}` },
+        () => { void load(); },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'sponsors', filter: `division_id=eq.${divisionId}` },
+        () => { void load(); },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [divisionId, load]);
+
   if (loading) {
     return (
       <ScreenContainer scroll={false}>
@@ -394,6 +441,8 @@ export default function PublicCourtBoardView() {
   const matchesByCourt = new Map<string, Match[]>();
   const unscheduled: Match[] = [];
   for (const m of matches) {
+    // Hide bracket placeholders that don't have any team filled in yet.
+    if (m.team_a_id === null && m.team_b_id === null) continue;
     if (!m.court_id) {
       unscheduled.push(m);
       continue;
@@ -444,7 +493,7 @@ export default function PublicCourtBoardView() {
       router.back();
     } else {
       router.push({
-        pathname: '/(public)/t/[id]',
+        pathname: '/t/[id]',
         params: { id: division.tournament_id },
       });
     }
@@ -475,7 +524,7 @@ export default function PublicCourtBoardView() {
         <Pressable
           onPress={() =>
             router.push({
-              pathname: '/(public)/t/[id]/divisions/[divisionId]/scoreboard',
+              pathname: '/t/[id]/divisions/[divisionId]/scoreboard',
               params: { id: division.tournament_id, divisionId: division.id },
             })
           }
@@ -570,6 +619,8 @@ export default function PublicCourtBoardView() {
             </View>
           )}
         </View>
+
+        <SponsorBand sponsors={sponsors} />
 
         {showStandings && (
           <View style={[styles.gridSide, styles.standingsBlock]}>
@@ -788,6 +839,45 @@ function MatchRow({
   );
 }
 
+// --- Sponsor band ------------------------------------------------------
+// Renders sponsor logos between the court grid and the standings. Dynamic:
+// LARGE = full-width banner per row; MEDIUM = two per row; SMALL = wrapping
+// logo strip.
+
+function SponsorBand({ sponsors }: { sponsors: Sponsor[] }) {
+  if (sponsors.length === 0) return null;
+  const large = sponsors.filter((s) => s.size === 'large');
+  const medium = sponsors.filter((s) => s.size === 'medium');
+  const small = sponsors.filter((s) => s.size === 'small');
+  return (
+    <View style={styles.sponsorBand}>
+      {large.map((s) => (
+        <View key={s.id} style={styles.sponsorLargeRow}>
+          <Image source={{ uri: s.image_url }} style={styles.sponsorLargeImg} resizeMode="contain" />
+        </View>
+      ))}
+      {medium.length > 0 && (
+        <View style={styles.sponsorMediumRow}>
+          {medium.map((s) => (
+            <View key={s.id} style={styles.sponsorMediumCell}>
+              <Image source={{ uri: s.image_url }} style={styles.sponsorMediumImg} resizeMode="contain" />
+            </View>
+          ))}
+        </View>
+      )}
+      {small.length > 0 && (
+        <View style={styles.sponsorSmallRow}>
+          {small.map((s) => (
+            <View key={s.id} style={styles.sponsorSmallCell}>
+              <Image source={{ uri: s.image_url }} style={styles.sponsorSmallImg} resizeMode="contain" />
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
 // --- Standings table (compact, theme-only) -----------------------------
 
 function StandingsTable({
@@ -921,6 +1011,44 @@ const styles = StyleSheet.create({
   gridShell: { flexDirection: 'column' },
   gridShellWide: { flexDirection: 'row', alignItems: 'flex-start' },
   standingsBlock: { gap: spacing.sm, marginTop: spacing.md },
+
+  // Sponsor band — between the court grid and the standings.
+  sponsorBand: { gap: spacing.md, marginTop: spacing.lg },
+  sponsorLargeRow: {
+    width: '100%',
+    minHeight: 96,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sponsorLargeImg: { width: '100%', height: 80 },
+  sponsorMediumRow: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -(spacing.sm) },
+  sponsorMediumCell: { width: '50%', paddingHorizontal: spacing.sm, marginBottom: spacing.md },
+  sponsorMediumImg: {
+    width: '100%',
+    height: 64,
+    backgroundColor: colors.bgElevated,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm,
+  },
+  sponsorSmallRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.bgMuted,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  sponsorSmallCell: { flexGrow: 1, flexBasis: 120, height: 40, alignItems: 'center', justifyContent: 'center' },
+  sponsorSmallImg: { width: '100%', height: '100%' },
   standingsTitle: {
     fontSize: fontSize.xs,
     fontWeight: fontWeight.bold as TextStyle['fontWeight'],
